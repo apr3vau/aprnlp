@@ -364,7 +364,7 @@
                    (guess         :in     guesses)
                    (truth         :=      (word-upos word))
                    (features      :=      (all-features word sentence prev-tag prev-prev-tag
-                                              (nth (1+ i) guesses) (nth (+ 2 i) guesses)))
+                                                        (nth (1+ i) guesses) (nth (+ 2 i) guesses)))
                    (update tagger truth guess features)
                    (when (eq guess truth) (incf correct-count))
                    (incf total-count)))
@@ -406,14 +406,14 @@
   (let ((tagger (make-pos-tagger)))
     (train tagger "~/common-lisp/pos/"
            (read-conllu-files #P"~/Downloads/ud-treebanks-v2.14/UD_English-GUM/en_gum-ud-train.conllu"
-                              #P"~/Downloads/ud-treebanks-v2.14/UD_English-EWT/en_ewt-ud-train.conllu"
-                              #P"~/Downloads/ud-treebanks-v2.14/UD_English-Atis/en_atis-ud-train.conllu"
-                              #P"~/Downloads/ud-treebanks-v2.14/UD_English-ParTUT/en_partut-ud-train.conllu"
+                              ;#P"~/Downloads/ud-treebanks-v2.14/UD_English-EWT/en_ewt-ud-train.conllu"
+                              ;#P"~/Downloads/ud-treebanks-v2.14/UD_English-Atis/en_atis-ud-train.conllu"
+                              ;#P"~/Downloads/ud-treebanks-v2.14/UD_English-ParTUT/en_partut-ud-train.conllu"
                               )
-           10)
+           5)
     (test-tagger tagger (read-conllu-file #P"~/Downloads/ud-treebanks-v2.14/UD_English-GUM/en_gum-ud-test.conllu"))
     (setq *loaded-tagger* tagger)))
 
 ;(test-tagger *loaded-tagger* (read-conllu-file #P"~/Downloads/ud-treebanks-v2.14/UD_English-GUM/en_gum-ud-test.conllu"))
 
-(export '(train test-tagger test-training predict))
+(export '(train test-tagger test-training predict-sentence))

@@ -8,4 +8,4 @@
 (in-package pos)
 
 ;; For LOG4CL
-#+lispworks (log-config :stream *standard-output*)
+#+lispworks (ignore-errors (log-config :stream hcl:*background-output*))
