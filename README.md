@@ -2,18 +2,18 @@
 
 Here's a set of NLP processors written in Common Lisp by April & May.
 This includes a part-of-speech tagger and a transition-based
-dependency parser. A trivial searching-based lemmatizer is also
-included. 
+dependency parser (currently only unlabelled). A trivial
+searching-based lemmatizer is also included.
 
 It's still in primary stage, and has been tested under LispWorks and
 SBCL.
 
 Performance:
 
-| \          | Speed         | Model Size | Correctness |
-| ---------- | ------------- | ---------- | ----------- |
-| pos-tagger |  143k words/s |      3.8MB |         94% |
-| dep-parser |   85k words/s |       11MB |         86% |
+| \                | Speed         | Model Size | Correctness |
+| ---------------- | ------------- | ---------- | ----------- |
+| pos-tagger       |  143k words/s |      3.8MB |         94% |
+| dep-parser (UAS) |   85k words/s |       11MB |         86% |
 
 Load the system to evaluate the result / using the model. The
 `test-training` function provides a sample training code for each kind
