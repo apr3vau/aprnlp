@@ -29,7 +29,7 @@ Please also install that repo while evaluating this system.**
 
 **For SBCL, the default heap size is not sufficient for training the
 dependency parser. Please increase the heap size, for example,
-starting SBCL with following argument: **
+starting SBCL with following argument:**
 
 	sbcl --dynamic-space-size 4096
 
