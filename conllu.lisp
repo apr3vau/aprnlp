@@ -1,8 +1,8 @@
-(in-package pos)
+;; -*- mode: Lisp; coding: utf-8-unix; -*-
+;; Copyright (c) 2024, April & May
+;; SPDX-License-Identifier: 0BSD
 
-(defstruct word id form lemma upos xpos head deprel suffix prefix)
-
-(defpackage pos/words)
+(in-package aprnlp)
 
 (defun parse-conllu-line (line id)
   (declare (inline parse-conllu-line))
@@ -12,17 +12,18 @@
     (unless (find #\- conllu-id)
       (make-word :id id
                  :form (intern form "POS/WORDS")
-                 :lemma (unless (eql (char lemma 0) #\_) lemma)
+                 :lemma (unless (eql (char lemma 0) #\_) (intern lemma  "POS/WORDS"))
                  :upos (intern (string-upcase upos) :keyword)
                  :xpos (intern (string-upcase xpos) :keyword)
-                 :head (unless (eql (char head 0) #\_) (parse-integer head))
+                 :head (if (eql (char head 0) #\_) 0 (parse-integer head))
                  :deprel (unless (eql (char deprel 0) #\_) (intern (string-upcase deprel) :keyword))
                  :suffix (intern (subseq form (- (length form) (min 3 (length form)))) "POS/WORDS")
                  :prefix (intern (subseq form 0 (min 3 (length form))) "POS/WORDS")))))
 
 (defun read-conllu-stream (in)
   (declare (inline read-conllu-stream))
-  (let ((result (make-array 0 :element-type 'vector :fill-pointer t :adjustable t))(i 1)
+  (let ((i 1)
+        (result (make-array 0 :element-type 'vector :fill-pointer t :adjustable t))
         (arr (make-array 0 :element-type 'word :fill-pointer t :adjustable t)))
     (for (line = (read-line in nil))
          (while line)

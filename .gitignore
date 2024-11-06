@@ -1,3 +1,5 @@
 *.fasl
 .DS_Store
 *.*~
+ud-treebanks-v2.14*
+unnamed-*.*
