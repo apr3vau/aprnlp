@@ -23,10 +23,6 @@ By the way, there's also an underdeveloping graph-based dependency
 parser in [dep-graph.lisp](./dep-graph.lisp). Its correctness is only
 ~65% currently.
 
-**Notice that this codebase used another utility
-[FOR-LOOP](https://github.com/apr3vau/for-loop) developed by us.
-Please also install that repo while evaluating this system.**
-
 **For SBCL, the default heap size is not sufficient for training the
 dependency parser. Please increase the heap size, for example,
 starting SBCL with following argument:**
