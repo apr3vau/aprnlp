@@ -5,7 +5,7 @@
 (defsystem aprnlp
   :author "April & May"
   :license "0BSD"
-  :depends-on (alexandria for-loop log4cl split-sequence serapeum trivial-file-size dexador)
+  :depends-on (alexandria iterate log4cl split-sequence serapeum trivial-file-size dexador)
   :components ((:file "package")
                (:file "conllu")
                (:file "util")

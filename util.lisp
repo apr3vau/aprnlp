@@ -4,6 +4,20 @@
 
 (in-package aprnlp)
 
+(defmacro-driver (for var :range val)
+  (let ((kw (if generate 'generate 'for))
+        (start (if (consp val) (first val) 0))
+        (end (if (consp val) (second val) (list '1- val)))
+        (step (if (consp val) (third val) nil)))
+    (apply #'nconc
+           (delete nil (list (list kw var :from start)
+                             (if end (list :to end))
+                             (if step (list :by step)))))))
+
+(defmacro-driver (for kv :in-plist plist)
+  (let ((kw (if generate 'generate 'for)))
+    (list kw kv :on plist :by '(function cddr))))
+
 (defun print-size (num)
   (if (numberp num)
       (cond ((< num 1024)
@@ -16,17 +30,17 @@
     ""))
 
 (defun table-to-plist (table)
-  (for (key val :in-table table)
-       (if (hash-table-p val)
-           (nconcing (list key (table-to-plist val)))
-         (nconcing (list key val)))))
+  (iter (for (key val) :in-hashtable table)
+        (if (hash-table-p val)
+            (nconcing (list key (table-to-plist val)))
+          (nconcing (list key val)))))
 
 (defun plist-to-table (plist)
   (let ((table (make-hash-table :test #'eq)))
-    (for (key val :in-plist plist)
-         (if (consp val)
-             (setf (gethash key table) (plist-to-table val))
-           (setf (gethash key table) val)))
+    (iter (for (key val) :in-plist plist)
+          (if (consp val)
+              (setf (gethash key table) (plist-to-table val))
+            (setf (gethash key table) val)))
     table))
 
 (defun punct-char-p (c)

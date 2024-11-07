@@ -3,7 +3,7 @@
 ;; SPDX-License-Identifier: 0BSD
 
 (defpackage aprnlp
-  (:use :cl #:for-loop #:log4cl)
+  (:use :cl #:iterate #:log4cl)
   (:import-from #:alexandria
    #:if-let
    #:when-let
