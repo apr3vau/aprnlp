@@ -13,7 +13,7 @@ Performance:
 | \                | Speed         | Model Size | Correctness |
 | ---------------- | ------------- | ---------- | ----------- |
 | pos-tagger       |  143k words/s |      3.8MB |         94% |
-| dep-parser (UAS) |   85k words/s |       11MB |         86% |
+| dep-parser (UAS) |   85k words/s |       11MB |         90% |
 
 Load the system to evaluate the result / using the model. The
 `test-training` function provides a sample training code for each kind

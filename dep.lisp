@@ -106,17 +106,10 @@
                  (when-let (table (apply #'href-default nil weights feature))
                    (iter (for (class weight) :in-hashtable table)
                          (incf (gethash class scores 0.0) weight))))
-           (let ((action (iter (for (class weight) :in-hashtable scores)
-                               (finding class :maximizing weight))))
-             (when (= (length stack) 1)
-               (if (and (= sentence-pointer (1- sentence-len))
-                        (eq action :shift))
-                   (setq action :right-arc)
-                 (setq action :shift)))
-             (when (and (= sentence-pointer (1- sentence-len))
-                        (> (length stack) 1)
-                        (eq action :shift))
-               (setq action :reduce))
+           (let ((action (if (= (length stack) 1)
+                           :shift
+                           (iter (for (class weight) :in-hashtable scores)
+                                 (finding class :maximizing weight)))))
              (funcall (gethash action actions)))))
       sentence)))
 
@@ -230,3 +223,5 @@
     (setq *loaded-dep-parser* parser)))
 
 ;(test-training 'dep-parser)
+(test *loaded-dep-parser* (read-conllu-files (merge-pathnames "UD_English-GUM/en_gum-ud-test.conllu"
+                                                              (merge-pathnames "ud-treebanks-v2.14/" (asdf:system-source-directory :aprnlp)))))
