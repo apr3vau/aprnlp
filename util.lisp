@@ -49,12 +49,10 @@
        (not (or (alphanumericp c) (whitespacep c)))))
 
 (defun numericp (str)
-  (if (symbolp str) (setq str (symbol-name str)))
   (or (every (op (or (digit-char-p _1) (member _1 '(#\, #\.)))) str)))
 
 (defun ordinalp (str)
   (declare (inline ordinalp))
-  (if (symbolp str) (setq str (symbol-name str)))
   (let ((len (length str)))
     (and (> len 2)
          (every #'digit-char-p (subseq str 0 (- len 2)))
@@ -62,7 +60,6 @@
 
 (defun punctp (str)
   (declare (inline punctp))
-  (if (symbolp str) (setq str (symbol-name str)))
   (every #'punct-char-p str))
 
 (defun download-ud-treebanks ()
@@ -84,5 +81,3 @@
       #+(and (not lispworks) unix)
       (uiop:run-program (list "/usr/bin/env" "tar" "-xvf" (namestring tgz-filename) "-C" (namestring dir)))
       (log:info "UD Treebank downloaded."))))
-(probe-file (merge-pathnames "ud-treebanks-v2.14/" (asdf:system-source-directory :aprnlp)))
-(ensure-directories-exist (merge-pathnames "ud-treebanks-v2.14/" (asdf:system-source-directory :aprnlp)))

@@ -19,7 +19,8 @@
    #:href-default
    #:@)
   (:import-from #:split-sequence #:split-sequence)
-  (:import-from #:trivial-file-size #:file-size-in-octets))
+  (:import-from #:trivial-file-size #:file-size-in-octets)
+  (:import-from #:anaphora-basic #:awhen #:it))
 (in-package aprnlp)
 
 ;; For LOG4CL

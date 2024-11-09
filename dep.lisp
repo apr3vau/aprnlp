@@ -42,7 +42,7 @@
       (log-info "Tagger saved to ~A, size: ~A" (namestring filename) (print-size (file-size-in-octets filename)))
       *loaded-dep-parser*)))
 
-(defun dep-features (left-word right-word stack buffer buffer-pointer)
+(defun dep-features (left-word right-word stack sentence sentence-pointer)
   (let ((right-form   (general-form right-word))
         (left-form    (general-form left-word))
         (right-pos    (word-upos right-word))
@@ -52,15 +52,14 @@
         (distance     (if (= (word-id left-word) 0) 0
                         (- (word-id left-word) (word-id right-word)))))
     (vector (list :form     left-form   right-form)
-            (list :pos      left-pos    right-pos)
-            (list :word-pos left-form   right-pos)
-            (list :pos-word left-pos    right-form)
             (list :form     left-form   t)
             (list :form     t           right-form)
+            (list :pos      left-pos    right-pos)
             (list :pos      left-pos    t)
             (list :pos      t           right-pos)
-            ;(list :form     t           t)
-            (list left-pos  right-pos   distance)
+            (list :word-pos left-form   right-pos)
+            (list :pos-word left-pos    right-form)
+            (list distance  left-pos    right-pos)
             (list :suffix   left-pos    right-suffix)
             (list :suffix   left-suffix right-pos)
             (list :suffix   left-suffix right-suffix)
@@ -68,18 +67,23 @@
             (list :stack left-form (when (second stack) (word-form (second stack))))
             (list :stack-pos left-pos (when (second stack) (word-upos (second stack))))
             (list :buffer right-form
-                  (when (< (1+ buffer-pointer) (length buffer))
-                    (word-form (aref buffer (1+ buffer-pointer)))))
+                  (when (< (1+ sentence-pointer) (length sentence))
+                    (word-form (aref sentence (1+ sentence-pointer)))))
             (list :buffer-pos right-pos
-                  (when (< (1+ buffer-pointer) (length buffer))
-                    (word-upos (aref buffer (1+ buffer-pointer)))))
+                  (when (< (1+ sentence-pointer) (length sentence))
+                    (word-upos (aref sentence (1+ sentence-pointer)))))
+            
+            (list :left-head left-pos
+                  (iter (for word :in-vector sentence :to (1- sentence-pointer))
+                        (finding (general-form word) :such-that (= (word-id word) (word-head left-word)))))
+            (list :left-children left-pos
+                  (iter (for word :in-vector sentence :to (1- sentence-pointer))
+                        (finding (general-form word) :such-that (= (word-head word) (word-id left-word)))))
             )))
 
 (defmethod process ((parser dep-parser) sentence)
   (with-slots (weights) parser
-    (let* ((sentence-len (if (array-has-fill-pointer-p sentence)
-                             (fill-pointer sentence)
-                           (length sentence)))
+    (let* ((sentence-len (length sentence))
            (sentence-pointer 0)
            (stack (list *root-word*))
            left right
@@ -87,7 +91,6 @@
                           :shift (lambda ()
                                    (push right stack)
                                    (incf sentence-pointer))
-                          :reduce (lambda () (pop stack))
                           :left-arc (lambda ()
                                       (setf (word-head left) (word-id right)
                                             stack (cdr stack)))
@@ -127,7 +130,6 @@
                           :shift (lambda ()
                                    (push right stack)
                                    (incf sentence-pointer))
-                          :reduce (lambda () (pop stack))
                           :left-arc (lambda ()
                                       (setf (word-head left) (word-id right)
                                             stack (cdr stack)))
@@ -156,10 +158,10 @@
              (when (eq guess truth) (incf correct-count))
              (incf total-count)
              (update parser truth guess features)
-             (when (and (= (length stack) 1)
+             #|(when (and (= (length stack) 1)
                         (= sentence-pointer (1- sentence-len))
                         (member truth '(:left-arc :shift)))
-               (setq truth :right-arc))
+               (setq truth :right-arc))|#
              (funcall (gethash truth actions)))))
       (values correct-count total-count))))
 
@@ -196,13 +198,9 @@
         (total-count   0)
         (start-time    (get-internal-real-time)))
     (iter (for sentence :in-vector sentences)
-          (for new-sentence :next (coerce (iter (for word :in-vector sentence)
-                                                (collect (copy-word word)))
-                                          'vector))
-          (process parser new-sentence)
           (iter (for truth :in-vector sentence)
-                (for guess :in-vector new-sentence)
-                (when (= (word-head guess) (word-head truth))
+                (for guess :in-vector (process parser (copy-sentence sentence)))
+                (when (eql (word-head guess) (word-head truth))
                   (incf correct-count))
                 (incf total-count)))
     (log-info "Test ~D sentences using ~,2Fs, result: ~D/~D (~,2F%)"
@@ -220,8 +218,7 @@
                                      (merge-pathnames "UD_English-Atis/en_atis-ud-train.conllu" ud-dir))
            :cycles 5)
     (test parser (read-conllu-files (merge-pathnames "UD_English-GUM/en_gum-ud-test.conllu" ud-dir)))
-    (setq *loaded-dep-parser* parser)))
+    (setq *loaded-dep-parser* parser)
+    nil))
 
 ;(test-training 'dep-parser)
-(test *loaded-dep-parser* (read-conllu-files (merge-pathnames "UD_English-GUM/en_gum-ud-test.conllu"
-                                                              (merge-pathnames "ud-treebanks-v2.14/" (asdf:system-source-directory :aprnlp)))))
