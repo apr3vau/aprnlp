@@ -33,8 +33,8 @@
               (setq arr (make-array 0 :element-type 'word :fill-pointer t :adjustable t))))
           (when (and (> (length line) 0)
                      (not (eq (char line 0) #\#)))
-            (when-let ((word (parse-conllu-line line i)))
-              (vector-push-extend word arr)
+            (awhen (parse-conllu-line line i)
+              (vector-push-extend it arr)
               (incf i))))
     result))
 

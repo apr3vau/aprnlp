@@ -19,4 +19,5 @@
                (:file "generic")
                (:file "pos")
                (:file "lemma")
-               (:file "dep")))
+               (:file "dep")
+               (:file "dep-label")))

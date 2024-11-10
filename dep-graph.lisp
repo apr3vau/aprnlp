@@ -181,9 +181,7 @@ If there is a cycle, return the first cycle as the second value."
               correct-count total-count (* 100 (/ correct-count total-count)))
     (float (* 100 (/ correct-count total-count)))))
 
-(defmethod train ((parser dep-graph-parser) sentences &key (cycles 5) save-dir)
-  (unless save-dir
-    (setq save-dir (asdf/system:system-source-directory :aprnlp)))
+(defmethod train ((parser dep-graph-parser) sentences &key (cycles 5) (save-dir (asdf:system-source-directory :aprnlp)))
   (log-info "Start training with ~D sentences, ~D cycles. ~A"
             (length sentences) cycles
             #+lispworks (lw:string-append "Heap size: " (print-size (getf (sys:room-values) :total-size)))

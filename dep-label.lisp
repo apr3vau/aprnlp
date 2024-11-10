@@ -1,0 +1,80 @@
+;; -*- mode: Lisp; coding: utf-8-unix; -*-
+;; Copyright (c) 2024, April & May
+;; SPDX-License-Identifier: 0BSD
+
+(in-package aprnlp)
+
+(setf *dep-parser-with-labeller* t)
+
+(defun dep-label-features (word sentence)
+  (let* ((id (word-id word))
+         (head         (if (< (word-head word) 2) *root-word*
+                         (find (word-head word) sentence :key #'word-id)))
+         (head-head    (if (< (word-head head) 2) *root-word*
+                         (find (word-head head) sentence :key #'word-id)))
+         (children     (iter (for w :in-vector sentence)
+                             (when (eq (word-head w) id)
+                               (collect w))))
+         (word-form    (general-form word))
+         (head-form    (general-form head))
+         (word-pos     (word-upos word))
+         (head-pos     (word-upos head))
+         (word-suffix  (word-suffix word))
+         (head-suffix  (word-suffix head))
+         (distance     (if (= (word-id head) 0) 0
+                         (- (word-id head) (word-id word)))))
+    (vector (list :label-form     head-form   word-form)
+            (list :label-form     head-form   t)
+            (list :label-form     t           word-form)
+            (list :label-pos      head-pos    word-pos)
+            (list :label-pos      head-pos    t)
+            (list :label-pos      t           word-pos)
+            (list :label-word-pos head-form   word-pos)
+            (list :label-pos-word head-pos    word-form)
+            (list :label-suffix   head-pos    word-suffix)
+            (list :label-suffix   head-suffix word-pos)
+            (list :label-suffix   head-suffix word-suffix)
+            (list :label-child0   word-pos    (awhen (nth 0 children) (word-form it)))
+            (list :label-child1   word-pos    (awhen (nth 1 children) (word-form it)))
+            (list :label-child0   word-pos    (awhen (nth 0 children) (word-upos it)))
+            (list :label-child1   word-pos    (awhen (nth 1 children) (word-upos it)))
+            (list :label-prev     word-pos    (prev-word id sentence))
+            (list :label-next     word-pos    (next-word id sentence))
+            (list :distance       head-pos    distance)
+            (list :distance       distance    word-pos)
+            (list :label-head-head head-pos   (word-upos head-head))
+            )))
+
+(defmethod train :after ((parser dep-parser) sentences &key (cycles 5) (save-dir (asdf:system-source-directory :aprnlp)))
+  (log-info "Start training labeller with ~D sentences, ~D cycles. ~A"
+            (length sentences) cycles
+            #+lispworks (lw:string-append "Heap size: " (print-size (getf (sys:room-values) :total-size)))
+            #-lispworks "")
+  (iter (for cycle :range cycles)
+        (let ((correct-count    0)
+              (total-count      0)
+              (cycle-start-time (get-internal-real-time)))
+          (iter (for sentence :in-vector sentences)
+                (iter (for word :in-vector sentence)
+                      (let ((features (dep-label-features word sentence)))
+                        (let ((guess (find-best parser features))
+                              (truth (word-deprel word)))
+                          (update parser truth guess features)
+                          (when (eq guess truth) (incf correct-count))
+                          (incf total-count)))))
+          (log-info "Cycle ~D/~D completed using ~,2Fs with ~D/~D (~,2F%) correct. ~A"
+                    (1+ cycle) cycles
+                    #+lispworks (/ (- (get-internal-real-time) cycle-start-time) 1000)
+                    #-lispworks (/ (- (get-internal-real-time) cycle-start-time) 1000000)
+                    correct-count total-count (* 100.0 (/ correct-count total-count))
+                    #+lispworks (lw:string-append "Heap size: " (print-size (getf (sys:room-values) :total-size)))
+                    #-lispworks "")
+          (setq sentences (shuffle sentences))))
+  (average-weights parser)
+  (save-processor parser save-dir))
+
+(defmethod process :after ((parser dep-parser) sentence)
+  (iter (for word :in-vector sentence)
+        (setf (word-deprel word)
+              (find-best parser (dep-label-features word sentence))))
+  sentence)

@@ -98,16 +98,16 @@
             (if unique-tag
                 (setf (gethash unique-tag (svref scores i)) most-positive-fixnum)
                 (iter (for feature :in-vector (pos-backward-features word sentence))
-                      (when-let (table (apply #'href-default nil weights feature))
-                        (iter (for (class weight) :in-hashtable table)
+                      (awhen (apply #'href-default nil weights feature)
+                        (iter (for (class weight) :in-hashtable it)
                               (incf (gethash class (svref scores i) 0.0) weight))))))
       (iter (for word          :in-vector sentence :with-index i   :downto 0)
             (for form          :next      (word-form word))
             (for unique-tag    :next      (gethash form unique-tag-words))
             (unless unique-tag
               (iter (for feature :in-vector (pos-forward-features word sentence))
-                    (when-let (table (apply #'href-default nil weights feature))
-                      (iter (for (class weight) :in-hashtable table)
+                    (awhen (apply #'href-default nil weights feature)
+                      (iter (for (class weight) :in-hashtable it)
                             (incf (gethash class (svref scores i) 0.0) weight))))))
       (iter (for table :in-vector scores :with-index i)
             (setf (word-upos (aref sentence i))
@@ -152,11 +152,9 @@
       (log-info "Tagger saved to ~A, size: ~A" (namestring filename) (print-size (file-size-in-octets filename)))
       *loaded-pos-tagger*)))
 
-(defmethod train ((tagger pos-tagger) sentences &key (cycles 5) save-dir)
+(defmethod train ((tagger pos-tagger) sentences &key (cycles 5) (save-dir (asdf:system-source-directory :aprnlp)))
   (declare (optimize (speed 3) (space 0) (safety 0)))
   (with-slots (unique-tag-words) tagger
-    (unless save-dir
-      (setq save-dir (asdf/system:system-source-directory :aprnlp)))
     (log-info "Start training with ~D sentences, ~D cycles. ~A"
               (length sentences) cycles
               #+lispworks (lw:string-append "Heap size: " (print-size (getf (sys:room-values) :total-size)))

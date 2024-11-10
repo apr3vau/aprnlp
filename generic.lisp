@@ -46,7 +46,8 @@
 (defclass perceptron-processor ()
   ((name             :initform "Unnamed Processor")
    (update-count     :initform 0)
-   (weights          :initform (make-hash-table :test #'eq))
+   (weights          :initform (make-hash-table :test #'eq)
+                     :accessor processor-weights)
    (last-updates     :initform (make-hash-table :test #'eq))
    (living-weights   :initform (make-hash-table :test #'eq))))
 
@@ -108,6 +109,16 @@
      (setq value-table (setf (gethash value specializer-table) (make-hash-table :test #'eq)))
      set-value
      (setf (gethash class value-table) val))))
+
+(defun find-best (processor features)
+  (declare (optimize (safety 0) (speed 3) (space 0)))
+  (let ((scores (make-hash-table :test #'eq)))
+    (iter (for feature :in-vector features)
+          (awhen (apply #'href-default nil (slot-value processor 'weights) feature)
+            (iter (for (class weight) :in-hashtable it)
+                  (incf (gethash class scores 0.0) weight))))
+    (iter (for (class weight) :in-hashtable scores)
+          (finding class :maximizing weight))))
 
 ;; Methods
 
