@@ -7,6 +7,7 @@
   :license "0BSD"
   :depends-on (alexandria
                anaphora
+               cl-ppcre
                dexador
                iterate
                log4cl
@@ -20,4 +21,6 @@
                (:file "pos")
                (:file "lemma")
                (:file "dep")
-               (:file "dep-label")))
+               (:file "dep-label")
+               (:file "simple-tokenizer")
+               (:file "simple-pipeline")))

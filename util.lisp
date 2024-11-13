@@ -81,3 +81,13 @@
       #+(and (not lispworks) unix)
       (uiop:run-program (list "/usr/bin/env" "tar" "-xvf" (namestring tgz-filename) "-C" (namestring dir)))
       (log:info "UD Treebank downloaded."))))
+
+(defparameter *country-codes*
+  '(:english "en" :dutch "nl"))
+
+(defun treebank-file (language name type)
+  (truename
+   (merge-pathnames (format nil "ud-treebanks-v2.14/UD_~A-~A/~A_~A-ud-~A.conllu"
+                            (string-capitalize language) name
+                            (getf *country-codes* language) (string-downcase name) (string-downcase type))
+                    (asdf:system-source-directory :aprnlp))))

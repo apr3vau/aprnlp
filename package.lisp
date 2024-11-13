@@ -3,7 +3,7 @@
 ;; SPDX-License-Identifier: 0BSD
 
 (defpackage aprnlp
-  (:use :cl #:iterate #:log4cl)
+  (:use :cl #:iterate #:log4cl #:split-sequence)
   (:import-from #:alexandria
    #:if-let
    #:shuffle
@@ -16,7 +16,6 @@
    #:dict
    #:href
    #:href-default)
-  (:import-from #:split-sequence #:split-sequence)
   (:import-from #:trivial-file-size #:file-size-in-octets)
   (:import-from #:anaphora-basic #:awhen #:it))
 (in-package aprnlp)

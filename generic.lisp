@@ -7,6 +7,10 @@
 ;; Words
 
 (defstruct word id form lemma upos xpos head deprel suffix prefix)
+(export '(word
+          word-id word-form word-lemma word-upos word-xpos
+          word-head word-deprel word-suffix word-prefix
+          make-word copy-word word-p))
 
 (defpackage pos/words)
 
@@ -33,23 +37,32 @@
            :right-pair)
           ;((punctp str) :punct)
           ((and (find #\@ str) (find #\. str)) :email)
-          (t str))))
+          (t (word-form word)))))
 
 (defun copy-sentence (sentence)
   (let ((result (make-array (length sentence) :element-type 'word)))
     (iter (for word :in-vector sentence :with-index i)
           (setf (aref result i) (copy-word word)))
     result))
+(defun copy-sentences (sentences)
+  (let ((result (make-array (length sentences) :element-type 'vector)))
+    (iter (for sentence :in-vector sentences :with-index i)
+          (setf (aref result i) (copy-sentence sentence)))
+    result))
+(export '(copy-sentence copy-sentences))
 
 ;; Processor
 
 (defclass perceptron-processor ()
-  ((name             :initform "Unnamed Processor")
+  ((name             :initform "Unnamed Processor"
+                     :initarg  :name
+                     :accessor processor-name)
    (update-count     :initform 0)
    (weights          :initform (make-hash-table :test #'eq)
                      :accessor processor-weights)
    (last-updates     :initform (make-hash-table :test #'eq))
    (living-weights   :initform (make-hash-table :test #'eq))))
+(export '(perceptron-processor name weights processor-name processor-weights))
 
 ;; Helping functions
 
@@ -165,4 +178,4 @@
 (defgeneric save-processor (processor directory))
 (defgeneric load-processor (class file))
 
-(export '(process save-processor train test test-training))
+(export '(process train test test-training load-processor save-processor))

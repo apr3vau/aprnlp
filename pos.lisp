@@ -7,8 +7,10 @@
 (defclass pos-tagger (perceptron-processor)
   ((name             :initform "unnamed-pos-tagger")
    (unique-tag-words :initform (make-hash-table :test #'eq))))
+(export 'pos-tagger)
 
 (defparameter *loaded-pos-tagger* nil)
+(export '*loaded-pos-tagger*)
 
 ;; Features
 
@@ -213,13 +215,12 @@
 
 (defmethod test-training ((class (eql 'pos-tagger)))
   (download-ud-treebanks)
-  (let ((tagger (make-instance 'pos-tagger))
-        (ud-dir (merge-pathnames "ud-treebanks-v2.14/" (asdf:system-source-directory :aprnlp))))
-    (train tagger (read-conllu-files (merge-pathnames "UD_English-GUM/en_gum-ud-train.conllu" ud-dir)
-                                     (merge-pathnames "UD_English-EWT/en_ewt-ud-train.conllu" ud-dir)
-                                     (merge-pathnames "UD_English-Atis/en_atis-ud-train.conllu" ud-dir))
+  (let ((tagger (make-instance 'pos-tagger)))
+    (train tagger (read-conllu-files (treebank-file :english "GUM" :train)
+                                     (treebank-file :english "EWT" :train)
+                                     (treebank-file :english "Atis" :train))
            :cycles 5)
-    (test tagger (read-conllu-files (merge-pathnames "UD_English-GUM/en_gum-ud-test.conllu" ud-dir)))
+    (test tagger (read-conllu-files (treebank-file :english "GUM" :test)))
     (setq *loaded-pos-tagger* tagger)
     nil))
 

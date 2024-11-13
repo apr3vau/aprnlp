@@ -5,9 +5,12 @@
 (in-package aprnlp)
 
 (defclass dep-parser (perceptron-processor)
-  ((name :initform "unnamed-dep-arser")))
+  ((name :initform "unnamed-dep-parser")))
+(export 'dep-parser)
 
 (defvar *loaded-dep-parser* nil)
+(export '*loaded-dep-parser*)
+
 (defvar *dep-parser-with-labeller* nil)
 
 (defvar *root-word* (make-word :form :root :upos :root :head -1 :id 0))
@@ -208,13 +211,12 @@
     (values (* 100 (/ uas-correct-count total-count)) (* 100 (/ las-correct-count total-count)))))
 
 (defmethod test-training ((class (eql 'dep-parser)))
-  (let ((parser (make-instance 'dep-parser))
-        (ud-dir (merge-pathnames "ud-treebanks-v2.14/" (asdf:system-source-directory :aprnlp))))
-    (train parser (read-conllu-files (merge-pathnames "UD_English-GUM/en_gum-ud-train.conllu" ud-dir)
-                                     (merge-pathnames "UD_English-EWT/en_ewt-ud-train.conllu" ud-dir)
-                                     (merge-pathnames "UD_English-Atis/en_atis-ud-train.conllu" ud-dir))
+  (let ((parser (make-instance 'dep-parser)))
+    (train parser (read-conllu-files (treebank-file :english "GUM" :train)
+                                     (treebank-file :english "EWT" :train)
+                                     (treebank-file :english "Atis" :train))
            :cycles 5)
-    (test parser (read-conllu-files (merge-pathnames "UD_English-GUM/en_gum-ud-test.conllu" ud-dir)))
+    (test parser (read-conllu-files (treebank-file :english "GUM" :test)))
     (setq *loaded-dep-parser* parser)
     nil))
 
